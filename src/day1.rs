@@ -46,13 +46,29 @@ pub mod tests {
     use super::*;
 
     // Lesson learned: Structs and string slices must share their lifetime
-    struct Expected<'a> {
-        input: &'a str,
-        result: i32
+    // Lesson learned: To use struct in another module, fields must be public
+    pub struct Expected<'a> {
+        pub input: &'a str,
+        pub result: i32
+    }
+
+    // Lesson learned: Functions accept arrays as references and functions by type signature
+    pub fn assert_expected_answers(expected_answers: &[Expected], func: fn(&str) -> i32) {
+        // Lesson learned: Loop iterators return a reference
+        // This must be pattern matched by getting the object on the other side
+        for check in expected_answers {
+            match check {
+                // Lesson learned: Pattern matching against Structs
+                // go in variable order
+                &Expected { input, result } => {
+                    assert_eq!(func(input), result);
+                },
+            }
+        }
     }
 
     #[test]
-    fn test_day1a() {
+    fn day1a() {
 
         // Lesson learned: Tuples are declared with (), Structs with {}
         let expected_answers = [
@@ -67,33 +83,17 @@ pub mod tests {
             Expected { input: ")())())", result: -3 },
             ];
 
-        // Lesson learned: Loop iterators return a reference
-        // This must be pattern matched by getting the object on the other side
-        for check in &expected_answers {
-            match check {
-                // Lesson learned: Pattern matching against Structs
-                // go in variable order
-                &Expected { input, result } => {
-                    assert_eq!( main(input), result );
-                },
-            }
-        }
+        assert_expected_answers(&expected_answers, main);
     }
 
     #[test]
-    fn test_day1b () {
+    fn day1b () {
         let expected_answers = [
-            Expected { input: ")", result: 1 },
+            Expected { input: ")",     result: 1 },
             Expected { input: "()())", result: 5 },
             ];
 
-        for check in &expected_answers {
-            match check {
-                &Expected { input, result } => {
-                    assert_eq!( extra(input), result );
-                },
-            }
-        }
+        assert_expected_answers(&expected_answers, extra);
     }
 }
 
