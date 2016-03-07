@@ -49,13 +49,13 @@ pub fn main(dim_boxes_str: &String) -> i32 {
     let mut area = 0;
 
     for line in dim_boxes_str.lines() {
-        area += area_one_box(line);
+        area += area_one_box(&line.to_string());
     }
 
     area
 }
 
-fn area_one_box(dim_string: &str) -> i32 {
+fn area_one_box(dim_string: &String) -> i32 {
     let rectangle = Rectangle::new(dim_string);
     rectangle.area() + min_array(rectangle.get_areas())
 }
@@ -64,13 +64,13 @@ pub fn extra(dim_boxes_str: &String) -> i32 {
     let mut length = 0;
 
     for line in dim_boxes_str.lines() {
-        length += length_one_box(line);
+        length += length_one_box(&line.to_string());
     }
 
     length
 }
 
-fn length_one_box(dim_string: &str) -> i32 {
+fn length_one_box(dim_string: &String) -> i32 {
     let rectangle = Rectangle::new(dim_string);
     rectangle.volume() + min_array(rectangle.get_perimeters())
 }

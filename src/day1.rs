@@ -46,18 +46,18 @@ pub mod tests {
         pub result: i32
     }
 
-    pub fn assert_one_expected(check: &Expected, func: fn(&str) -> i32) {
+    pub fn assert_one_expected(check: &Expected, func: fn(&String) -> i32) {
         match check {
             // Lesson learned: Pattern matching against Structs
             // go in variable order
             &Expected { input, result } => {
-                assert_eq!(func(input), result);
+                assert_eq!(func(&input.to_string()), result);
             },
         };
     }
 
     // Lesson learned: Functions accept arrays as references and functions by type signature
-    pub fn assert_expected_answers(expected_answers: &[Expected], func: fn(&str) -> i32) {
+    pub fn assert_expected_answers(expected_answers: &[Expected], func: fn(&String) -> i32) {
         // Lesson learned: Loop iterators return a reference
         // This must be pattern matched by getting the object on the other side
         for check in expected_answers {

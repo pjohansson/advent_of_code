@@ -1,6 +1,7 @@
 // Lesson learned: Modules are included internally like this
 mod day1;
 mod day2;
+mod day3;
 mod utils;
 
 use utils::read_file;
