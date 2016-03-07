@@ -1,3 +1,5 @@
+use utils::tests::*;
+
 fn get_move(c: char) -> i32 {
     match c {
         '(' =>  1,
@@ -37,33 +39,8 @@ pub fn extra(instructions: &String) -> i32 {
 #[cfg(test)]
 pub mod tests {
     // Lesson learned: `super` references superset of module
+    use utils::tests::*;
     use super::*;
-
-    // Lesson learned: Structs and string slices must share their lifetime
-    // Lesson learned: To use struct in another module, fields must be public
-    pub struct Expected<'a> {
-        pub input: &'a str,
-        pub result: i32
-    }
-
-    pub fn assert_one_expected(check: &Expected, func: fn(&String) -> i32) {
-        match check {
-            // Lesson learned: Pattern matching against Structs
-            // go in variable order
-            &Expected { input, result } => {
-                assert_eq!(func(&input.to_string()), result);
-            },
-        };
-    }
-
-    // Lesson learned: Functions accept arrays as references and functions by type signature
-    pub fn assert_expected_answers(expected_answers: &[Expected], func: fn(&String) -> i32) {
-        // Lesson learned: Loop iterators return a reference
-        // This must be pattern matched by getting the object on the other side
-        for check in expected_answers {
-            assert_one_expected(check, func);
-        }
-    }
 
     #[test]
     fn day1a() {
@@ -81,7 +58,7 @@ pub mod tests {
             Expected { input: ")())())", result: -3 },
             ];
 
-        assert_expected_answers(&expected_answers, main);
+        assert_all_expected(&expected_answers, main);
     }
 
     #[test]
@@ -91,7 +68,7 @@ pub mod tests {
             Expected { input: "()())", result: 5 },
             ];
 
-        assert_expected_answers(&expected_answers, extra);
+        assert_all_expected(&expected_answers, extra);
     }
 }
 

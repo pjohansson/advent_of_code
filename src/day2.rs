@@ -78,7 +78,7 @@ fn length_one_box(dim_string: &String) -> i32 {
 #[cfg(test)]
 pub mod tests {
     // Lesson learned: Import with easy access from tests
-    use day1::tests::{Expected, assert_expected_answers, assert_one_expected};
+    use utils::tests::*;
     use super::*;
 
     #[test]
@@ -90,7 +90,7 @@ pub mod tests {
         let expected_double = Expected { input: "2x3x4\n1x1x10\n", result: 58+43 };
 
         // Lesson learned: Access private functions in `super` module by explicit signature
-        assert_expected_answers(&expected_answers, super::area_one_box);
+        assert_all_expected(&expected_answers, super::area_one_box);
         assert_one_expected(&expected_double, main);
    }
 
@@ -102,7 +102,7 @@ pub mod tests {
             ];
         let expected_double = Expected { input: "2x3x4\n1x1x10\n", result: 34+14 };
 
-        assert_expected_answers(&expected_answers, super::length_one_box);
+        assert_all_expected(&expected_answers, super::length_one_box);
         assert_one_expected(&expected_double, extra);
     }
 }
