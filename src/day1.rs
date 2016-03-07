@@ -1,5 +1,3 @@
-use utils::tests::*;
-
 fn get_move(c: char) -> i32 {
     match c {
         '(' =>  1,
