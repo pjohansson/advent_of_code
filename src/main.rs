@@ -2,6 +2,7 @@
 mod day1;
 mod day2;
 mod day3;
+mod day4;
 mod utils;
 
 use utils::read_file;
@@ -24,5 +25,12 @@ fn main() {
     println!("  Main:  {}", day3::main(&day3_data));
     println!("  Extra: {}", day3::extra(&day3_data));
     println!("");
+
+    let day4_data = "iwrupvqb".to_string();
+    println!("Day 4");
+    println!("  Main:  {}", day4::main(&day4_data));
+    //println!("  Extra: {}", day4::extra(&day4_data));
+    println!("");
+
 }
 
