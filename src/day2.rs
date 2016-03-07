@@ -2,6 +2,45 @@ use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
 
+struct Rectangle {
+    x: i32,
+    y: i32,
+    z: i32
+}
+
+impl Rectangle {
+    fn new(input: &str) -> Rectangle {
+        let mut sides = Vec::new();
+
+        let input_split: Vec<&str> = input.split('x').collect();
+
+        for cs in input_split {
+            match cs.parse::<i32>() {
+                Ok(i) => sides.push(i),
+                _     => panic!("Bad input for Rectangle."),
+            }
+        }
+
+        Rectangle { x: sides[0], y: sides[1], z: sides[2] }
+    }
+
+    fn area(&self) -> i32 {
+        2*(self.x * self.y + self.x * self.z + self.y * self.z)
+    }
+
+    fn get_areas(&self) -> [i32; 3] {
+        [ self.x * self.y, self.x * self.z, self.y * self.z ]
+    }
+
+    fn get_perimeters(&self) -> [i32; 3] {
+        [ 2*(self.x + self.y), 2*(self.x + self.z), 2*(self.y + self.z) ]
+    }
+
+    fn volume(&self) -> i32 {
+        self.x * self.y * self.z
+    }
+}
+
 pub fn read_file() -> String {
     let filename = "example_files/day2_input.txt";
     let path = Path::new(filename);
@@ -19,45 +58,12 @@ pub fn read_file() -> String {
 }
 
 // Lesson learned: This is another way to pass an array (specifially Vec) to a function
-fn min_array(array: Vec<i32>) -> i32 {
+fn min_array(array: [i32; 3]) -> i32 {
     // Lesson learned: `min` functions only on an iterator, and maybe not for floats
     match array.iter().min() {
         Some(&i) => i, // Lesson learned: `min` returns wrapped reference
         _        => 0,
     }
-}
-
-fn get_box_sides(dim_string: &str) -> Vec<i32> {
-    // Lesson learned: `split` and `collect`!
-    let array: Vec<&str> = dim_string.split('x').collect();
-    let mut sides = Vec::new();
-
-    // Lesson learned: How to convert strings to numbers via pattern matching
-    for c in array {
-        match c.parse::<i32>() {
-            Ok(v) => sides.push(v),
-            _     => (),
-        }
-    }
-
-    sides
-}
-
-// Lesson learned: A Vec is returned like this
-fn get_box_areas(dim_string: &str) -> Vec<i32> {
-    let sides = get_box_sides(dim_string);
-
-    // Lesson learned: How to construct vectors piece by piece
-    let mut areas = Vec::new();
-    for i in 0..3 {
-        for j in i..3 {
-            if i != j {
-                areas.push(sides[i]*sides[j]);
-            }
-        }
-    }
-
-    areas
 }
 
 pub fn main(dim_boxes_str: &str) -> i32 {
@@ -71,11 +77,10 @@ pub fn main(dim_boxes_str: &str) -> i32 {
 }
 
 fn area_one_box(dim_string: &str) -> i32 {
-    let areas = get_box_areas(dim_string);
+    let rectangle = Rectangle::new(dim_string);
     // Lesson learned: `sum` on iterator is unstable
-    let sum = areas[0] + areas[1] + areas[2];
 
-    2*sum + min_array(areas)
+    rectangle.area() + min_array(rectangle.get_areas())
 }
 
 pub fn extra(dim_boxes_str: &str) -> i32 {
@@ -89,19 +94,8 @@ pub fn extra(dim_boxes_str: &str) -> i32 {
 }
 
 fn length_one_box(dim_string: &str) -> i32 {
-    let sides = get_box_sides(dim_string);
-
-    let mut perimeters = Vec::new();
-    for i in 0..3 {
-        for j in i..3 {
-            if i != j {
-                perimeters.push(2*(sides[i] + sides[j]));
-            }
-        }
-    }
-
-    let volume = sides[0]*sides[1]*sides[2];
-    volume + min_array(perimeters)
+    let rectangle = Rectangle::new(dim_string);
+    rectangle.volume() + min_array(rectangle.get_perimeters())
 }
 
 #[cfg(test)]
