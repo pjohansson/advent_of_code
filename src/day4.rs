@@ -1,8 +1,7 @@
 extern crate md5;
 
-// This should probably be a Result object when returned
 // How to know when it has failed?
-pub fn main(input: &String, num_zeros: usize) -> i32 {
+pub fn main(input: &String, num_zeros: usize) -> Result<i32, &str> {
     // Lesson learned: How to set a variable number of zeros
     let needle = format!("{:0width$}", 0, width=num_zeros);
 
@@ -11,11 +10,11 @@ pub fn main(input: &String, num_zeros: usize) -> i32 {
         let string = input.clone() + &format!("{}", i);
 
         if get_hash(&string).starts_with(&needle) {
-            return i
+            return Ok(i)
         }
     }
 
-    0
+    Err("Could not find integer fulfilling hash requirements.")
 }
 
 // Lesson learned: use of the MD5 crate from tests
@@ -45,16 +44,8 @@ pub mod tests {
 
     #[test]
     fn day4a() {
-        /*
-        let expected_answers = [
-            Expected { input: "abcdef",  result: 609043 },
-            Expected { input: "pqrstuv", result: 1048970 },
-            ];
-*/
-
-        //assert_all_expected(&expected_answers, main);
-        assert_eq!(609043,  main(&"abcdef".to_string(), 5));
-        assert_eq!(1048970, main(&"pqrstuv".to_string(), 5));
+        assert_eq!(609043,  main(&"abcdef".to_string(), 5).unwrap());
+        assert_eq!(1048970, main(&"pqrstuv".to_string(), 5).unwrap());
     }
 }
 

@@ -28,8 +28,8 @@ fn main() {
 
     let day4_data = "iwrupvqb".to_string();
     println!("Day 4");
-    println!("  Main:  {}", day4::main(&day4_data, 5));
-    println!("  Extra: {}", day4::main(&day4_data, 6));
+    println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
+    println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
     println!("");
 
 }
