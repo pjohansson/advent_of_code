@@ -1,10 +1,16 @@
 extern crate md5;
 
-pub fn main(input: &String) -> i32 {
+// This should probably be a Result object when returned
+// How to know when it has failed?
+pub fn main(input: &String, num_zeros: usize) -> i32 {
+    // Lesson learned: How to set a variable number of zeros
+    let needle = format!("{:0width$}", 0, width=num_zeros);
+
     for i in 0.. {
+        // Lesson learned: Creating formatted strings
         let string = input.clone() + &format!("{}", i);
 
-        if get_hash(&string).starts_with("00000") {
+        if get_hash(&string).starts_with(&needle) {
             return i
         }
     }
@@ -12,6 +18,7 @@ pub fn main(input: &String) -> i32 {
     0
 }
 
+// Lesson learned: use of the MD5 crate from tests
 fn get_hash(input: &str) -> String {
     let mut context = md5::Context::new();
     context.consume(input.as_bytes());
@@ -28,7 +35,7 @@ fn get_hash(input: &str) -> String {
 pub mod tests {
     use utils::tests::*;
     use super::*;
-    extern crate md5;
+    extern crate md5; // Inconvenient to include twice?
 
     #[test]
     fn known_md5() {
@@ -38,11 +45,16 @@ pub mod tests {
 
     #[test]
     fn day4a() {
+        /*
         let expected_answers = [
             Expected { input: "abcdef",  result: 609043 },
             Expected { input: "pqrstuv", result: 1048970 },
             ];
+*/
 
-        assert_all_expected(&expected_answers, main);
+        //assert_all_expected(&expected_answers, main);
+        assert_eq!(609043,  main(&"abcdef".to_string(), 5));
+        assert_eq!(1048970, main(&"pqrstuv".to_string(), 5));
     }
 }
+
