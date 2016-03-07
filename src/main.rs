@@ -18,5 +18,11 @@ fn main() {
     println!("  Main:  {}", day2::main(&day2_data));
     println!("  Extra: {}", day2::extra(&day2_data));
     println!("");
+
+    let day3_data = read_file("example_files/day3_input.txt");
+    println!("Day 3");
+    println!("  Main:  {}", day3::main(&day3_data));
+    //println!("  Extra: {}", day2::extra(&day2_data));
+    println!("");
 }
 
