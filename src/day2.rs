@@ -1,7 +1,3 @@
-use std::fs::File;
-use std::path::Path;
-use std::io::prelude::*;
-
 struct Rectangle {
     x: i32,
     y: i32,
@@ -40,22 +36,6 @@ impl Rectangle {
     }
 }
 
-pub fn read_file() -> String {
-    let filename = "example_files/day2_input.txt";
-    let path = Path::new(filename);
-
-    let mut file = File::open(path).unwrap();
-    let mut string = String::new();
-
-    // Lesson learned: File access! Must be unwrapped.
-    match file.read_to_string(&mut string) {
-        Ok(_) => (),
-        Err(msg) => println!("{}", msg),
-    };
-
-    string
-}
-
 // Lesson learned: This is another way to pass an array (specifially Vec) to a function
 fn min_array(array: [i32; 3]) -> i32 {
     // Lesson learned: `min` functions only on an iterator, and maybe not for floats
@@ -65,7 +45,7 @@ fn min_array(array: [i32; 3]) -> i32 {
     }
 }
 
-pub fn main(dim_boxes_str: &str) -> i32 {
+pub fn main(dim_boxes_str: &String) -> i32 {
     let mut area = 0;
 
     for line in dim_boxes_str.lines() {
@@ -80,7 +60,7 @@ fn area_one_box(dim_string: &str) -> i32 {
     rectangle.area() + min_array(rectangle.get_areas())
 }
 
-pub fn extra(dim_boxes_str: &str) -> i32 {
+pub fn extra(dim_boxes_str: &String) -> i32 {
     let mut length = 0;
 
     for line in dim_boxes_str.lines() {
