@@ -8,6 +8,7 @@ struct Rectangle {
     z: i32
 }
 
+// Lesson learned: How to implement methods
 impl Rectangle {
     fn new(input: &str) -> Rectangle {
         let mut sides = Vec::new();
@@ -15,10 +16,8 @@ impl Rectangle {
         let input_split: Vec<&str> = input.split('x').collect();
 
         for cs in input_split {
-            match cs.parse::<i32>() {
-                Ok(i) => sides.push(i),
-                _     => panic!("Bad input for Rectangle."),
-            }
+            // Lesson learned: `unwrap` returns Ok(result) from an `Option`
+            sides.push(cs.parse::<i32>().unwrap())
         }
 
         Rectangle { x: sides[0], y: sides[1], z: sides[2] }
@@ -78,8 +77,6 @@ pub fn main(dim_boxes_str: &str) -> i32 {
 
 fn area_one_box(dim_string: &str) -> i32 {
     let rectangle = Rectangle::new(dim_string);
-    // Lesson learned: `sum` on iterator is unstable
-
     rectangle.area() + min_array(rectangle.get_areas())
 }
 
