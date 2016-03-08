@@ -1,13 +1,14 @@
 extern crate md5;
+use std;
 
 // How to know when it has failed?
 pub fn main(input: &String, num_zeros: usize) -> Result<i32, &str> {
     // Lesson learned: How to set a variable number of zeros
     let needle = format!("{:0width$}", 0, width=num_zeros);
 
-    for i in 0.. {
+    for i in 0..std::i32::MAX {
         // Lesson learned: Creating formatted strings
-        let string = input.clone() + &format!("{}", i);
+        let string = format!("{}{}", input, i);
 
         if get_hash(&string).starts_with(&needle) {
             return Ok(i)
@@ -23,8 +24,8 @@ fn get_hash(input: &str) -> String {
     context.consume(input.as_bytes());
 
     let mut digest = String::with_capacity(2 * 16);
-    for x in &context.compute() {
-        digest.push_str(&format!("{:02x}", x));
+    for b in &context.compute() {
+        digest.push_str(&format!("{:02x}", b));
     }
 
     digest.to_string()
@@ -32,9 +33,7 @@ fn get_hash(input: &str) -> String {
 
 #[cfg(test)]
 pub mod tests {
-    use utils::tests::*;
     use super::*;
-    extern crate md5; // Inconvenient to include twice?
 
     #[test]
     fn known_md5() {
