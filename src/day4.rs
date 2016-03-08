@@ -28,7 +28,7 @@ fn get_hash(input: &str) -> String {
         digest.push_str(&format!("{:02x}", b));
     }
 
-    digest.to_string()
+    digest
 }
 
 #[cfg(test)]
