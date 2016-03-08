@@ -1,7 +1,7 @@
 extern crate md5;
 use std;
 
-// How to know when it has failed?
+// Lesson learned: returning Result and getting the max of a type
 pub fn main(input: &String, num_zeros: usize) -> Result<i32, &str> {
     // Lesson learned: How to set a variable number of zeros
     let needle = format!("{:0width$}", 0, width=num_zeros);
@@ -47,4 +47,3 @@ pub mod tests {
         assert_eq!(1048970, main(&"pqrstuv".to_string(), 5).unwrap());
     }
 }
-
