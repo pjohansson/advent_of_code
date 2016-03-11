@@ -12,7 +12,7 @@ pub fn read_file(filename: &str) -> Result<String, &str> {
         return Ok(string);
     }
 
-    return Err("Could not read input file.")
+    Err("Could not read input file.")
 }
 
 #[cfg(test)]
