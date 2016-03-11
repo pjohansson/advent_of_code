@@ -2,17 +2,19 @@ use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
 
-pub fn read_file(filename: &str) -> Result<String, &str> {
+pub fn read_file(filename: &str) -> Result<String, String> {
     let path = Path::new(filename);
-    let mut file = File::open(path).unwrap();
+    let mut string = String::new();
 
     // Lesson learned: File access! Must be unwrapped.
-    let mut string = String::new();
-    if let Ok(_) = file.read_to_string(&mut string) {
-        return Ok(string);
+    // Lesson learned: Pattern match with mutable bindings
+    if let Ok(mut file) = File::open(path) {
+        if let Ok(_) = file.read_to_string(&mut string) {
+            return Ok(string);
+        }
     }
 
-    Err("Could not read input file.")
+    Err(format!("Could not read input file: `{}`", filename))
 }
 
 #[cfg(test)]
