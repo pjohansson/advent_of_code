@@ -8,19 +8,13 @@ fn has_double_char(input: &String) -> bool {
     // Loop over iterator and compare values against next
     // Lesson learned: Cannot `peek` in for loop since iterator is moved, not borrowed
     // Instead use a regular loop and handle variable assignment manually
-    loop {
-        let current = match iter.next() {
-            Some(c) => c,
-            None => break,
-        };
 
-        let next = match iter.peek() {
-            Some(c) => *c, // Return the value of the peek
-            None    => break,
-        };
-
-        if next == current {
-            return true
+    // Lesson learned: Can pattern match with `while let` since `next` returns Option
+    while let Some(current) = iter.next() {
+        if let Some(&next) = iter.peek() {
+            if next == current {
+                return true
+            }
         }
     }
 
