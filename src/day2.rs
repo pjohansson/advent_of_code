@@ -49,19 +49,19 @@ pub fn main(input: &String) -> i32 {
     // Lesson learned: `sum` still not stable which is totally weird
     // input.lines().map(|line| area_one_box(&line.to_string())).sum()
     // Lesson learned: using a `fold` to accumulate values instead of `sum`
-    input.lines().fold(0, |acc, line| acc + area_one_box(&line.to_string()))
+    input.lines().fold(0, |acc, line| acc + wrap_area(&line.to_string()))
 }
 
-fn area_one_box(dim_string: &String) -> i32 {
+fn wrap_area(dim_string: &String) -> i32 {
     let rectangle = Rectangle::new(dim_string);
     rectangle.area() + min_array(rectangle.get_areas())
 }
 
 pub fn extra(input: &String) -> i32 {
-    input.lines().fold(0, |acc, line| acc + length_one_box(&line.to_string()))
+    input.lines().fold(0, |acc, line| acc + ribbon_length(&line.to_string()))
 }
 
-fn length_one_box(dim_string: &String) -> i32 {
+fn ribbon_length(dim_string: &String) -> i32 {
     let rectangle = Rectangle::new(dim_string);
     rectangle.volume() + min_array(rectangle.get_perimeters())
 }
@@ -81,7 +81,7 @@ pub mod tests {
         let expected_double = Expected { input: "2x3x4\n1x1x10\n", result: 58+43 };
 
         // Lesson learned: Access private functions in `super` module by explicit signature
-        assert_all_expected(&expected_answers, super::area_one_box);
+        assert_all_expected(&expected_answers, super::wrap_area);
         assert_one_expected(&expected_double, main);
    }
 
@@ -93,7 +93,7 @@ pub mod tests {
             ];
         let expected_double = Expected { input: "2x3x4\n1x1x10\n", result: 34+14 };
 
-        assert_all_expected(&expected_answers, super::length_one_box);
+        assert_all_expected(&expected_answers, super::ribbon_length);
         assert_one_expected(&expected_double, extra);
     }
 }
