@@ -1,5 +1,5 @@
 fn is_nice(input: &String) -> bool {
-    has_double_char(input) && has_three_wovels(input) && !has_bad_string(input)
+    has_double_char(input) && has_num_wovels(input, 3) && !has_bad_string(input)
 }
 
 fn has_double_char(input: &String) -> bool {
@@ -34,28 +34,17 @@ fn has_bad_string(input: &String) -> bool {
 }
 
 fn is_wovel(c: char) -> bool {
+    // Lesson learned: Match several values at once
     match c {
         'a' | 'e' | 'i' | 'o' | 'u' => true,
         _                           => false,
     }
 }
 
-fn has_three_wovels(input: &String) -> bool {
-    let mut count = 0;
-
-    for c in input.chars() {
-        // Lesson learned: Match several values at once
-        count += match is_wovel(c) {
-            true  => 1,
-            false => 0,
-        }
-    }
-
-    if count >= 3 {
-        return true
-    }
-
-    false
+fn has_num_wovels(input: &String, num: usize) -> bool {
+    // Lesson learned: Using `filter` to extract values from an iterator
+    // Lesson learned: Pattern matching in closures
+    input.chars().filter(|&c| is_wovel(c)).count() >= num
 }
 
 
@@ -83,14 +72,14 @@ pub mod tests {
 
     #[test]
     fn three_wovels() {
-        assert_eq!(true,  super::has_three_wovels(&"aaaa".to_string()));
-        assert_eq!(true,  super::has_three_wovels(&"eee".to_string()));
-        assert_eq!(true,  super::has_three_wovels(&"iii".to_string()));
-        assert_eq!(true,  super::has_three_wovels(&"ooo".to_string()));
-        assert_eq!(true,  super::has_three_wovels(&"uuuuuu".to_string()));
-        assert_eq!(true,  super::has_three_wovels(&"aei".to_string()));
-        assert_eq!(false, super::has_three_wovels(&"yyy".to_string()));
-        assert_eq!(false, super::has_three_wovels(&"aey".to_string()));
+        assert_eq!(true,  super::has_num_wovels(&"aaaa".to_string(), 3));
+        assert_eq!(true,  super::has_num_wovels(&"eee".to_string(), 3));
+        assert_eq!(true,  super::has_num_wovels(&"iii".to_string(), 3));
+        assert_eq!(true,  super::has_num_wovels(&"ooo".to_string(), 3));
+        assert_eq!(true,  super::has_num_wovels(&"uuuuuu".to_string(), 3));
+        assert_eq!(true,  super::has_num_wovels(&"aei".to_string(), 3));
+        assert_eq!(false, super::has_num_wovels(&"yyy".to_string(), 3));
+        assert_eq!(false, super::has_num_wovels(&"aey".to_string(), 3));
     }
 
     #[test]
