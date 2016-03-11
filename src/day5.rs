@@ -1,3 +1,7 @@
+pub fn main(input: &String) -> usize {
+    input.lines().filter(|&line| is_nice(&line.to_string())).count()
+}
+
 fn is_nice(input: &String) -> bool {
     has_double_char(input) && has_num_wovels(input, 3) && !has_bad_string(input)
 }
@@ -89,5 +93,17 @@ pub mod tests {
         assert_eq!(false, super::is_nice(&"jchzalrnumimnmhp".to_string()));
         assert_eq!(false, super::is_nice(&"haegwjzuvuyypxyu".to_string()));
         assert_eq!(false, super::is_nice(&"dvszwmarrgswjxmb".to_string()));
+    }
+
+    #[test]
+    fn day5a() {
+        let string = "\
+            ugknbfddgicrmopn\n\
+            aaa\n\
+            jchzalrnumimnmhp\n\
+            haegwjzuvuyypxyu\n\
+            dvszwmarrgswjxmb\n".to_string();
+
+        assert_eq!(2, main(&string));
     }
 }

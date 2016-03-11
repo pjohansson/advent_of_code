@@ -9,28 +9,38 @@ mod utils;
 use utils::read_file;
 
 fn main() {
-    let day1_data = read_file("example_files/day1_input.txt");
-    println!("Day 1");
-    println!("  Main:  {}", day1::main(&day1_data));
-    println!("  Extra: {}", day1::extra(&day1_data));
-    println!("");
+    if let Ok(day1_data) = read_file("example_files/day1_input.txt") {
+        println!("Day 1");
+        println!("  Main:  {}", day1::main(&day1_data));
+        println!("  Extra: {}", day1::extra(&day1_data));
+        println!("");
+    }
 
-    let day2_data = read_file("example_files/day2_input.txt");
-    println!("Day 2");
-    println!("  Main:  {}", day2::main(&day2_data));
-    println!("  Extra: {}", day2::extra(&day2_data));
-    println!("");
+    if let Ok(day2_data) = read_file("example_files/day2_input.txt") {
+        println!("Day 2");
+        println!("  Main:  {}", day2::main(&day2_data));
+        println!("  Extra: {}", day2::extra(&day2_data));
+        println!("");
+    }
 
-    let day3_data = read_file("example_files/day3_input.txt");
-    println!("Day 3");
-    println!("  Main:  {}", day3::main(&day3_data));
-    println!("  Extra: {}", day3::extra(&day3_data));
-    println!("");
+    if let Ok(day3_data) = read_file("example_files/day3_input.txt") {
+        println!("Day 3");
+        println!("  Main:  {}", day3::main(&day3_data));
+        println!("  Extra: {}", day3::extra(&day3_data));
+        println!("");
+    }
 
+    if let Ok(day5_data) = read_file("example_files/day5_input.txt") {
+        println!("Day 5");
+        println!("  Main:  {}", day5::main(&day5_data));
+        //println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
+        println!("");
+    }
+
+    // Put last since the function is very slow
     let day4_data = "iwrupvqb".to_string();
     println!("Day 4");
     println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
     println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
     println!("");
-
 }
