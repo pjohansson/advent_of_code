@@ -38,9 +38,10 @@ fn main() {
     }
 
     // Put last since the function is very slow
-    let day4_data = "iwrupvqb".to_string();
-    println!("Day 4");
-    println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
-    println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
-    println!("");
+    if let Ok(day4_data) = read_file("example_files/day4_input.txt") {
+        println!("Day 4");
+        println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
+        println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
+        println!("");
+    }
 }
