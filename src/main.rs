@@ -30,18 +30,20 @@ fn main() {
         println!("");
     }
 
+    // Lesson learned: Conditional compilation based on compiler flags
+    if cfg!(feature = "all") {
+        if let Ok(day4_data) = read_file("example_files/day4_input.txt") {
+            println!("Day 4");
+            println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
+            println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
+            println!("");
+        }
+    }
+
     if let Ok(day5_data) = read_file("example_files/day5_input.txt") {
         println!("Day 5");
         println!("  Main:  {}", day5::main(&day5_data));
         //println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
-        println!("");
-    }
-
-    // Put last since the function is very slow
-    if let Ok(day4_data) = read_file("example_files/day4_input.txt") {
-        println!("Day 4");
-        println!("  Main:  {}", day4::main(&day4_data, 5).unwrap());
-        println!("  Extra: {}", day4::main(&day4_data, 6).unwrap());
         println!("");
     }
 }

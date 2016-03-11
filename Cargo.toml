@@ -5,3 +5,6 @@ authors = ["Petter Johansson <pettjoha@kth.se>"]
 
 [dependencies]
 md5 = "0.1.1"
+
+[features]
+all = []
