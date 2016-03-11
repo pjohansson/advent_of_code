@@ -45,14 +45,11 @@ fn min_array(array: [i32; 3]) -> i32 {
     }
 }
 
-pub fn main(dim_boxes_str: &String) -> i32 {
-    let mut area = 0;
-
-    for line in dim_boxes_str.lines() {
-        area += area_one_box(&line.to_string());
-    }
-
-    area
+pub fn main(input: &String) -> i32 {
+    // Lesson learned: `sum` still not stable which is totally weird
+    // input.lines().map(|line| area_one_box(&line.to_string())).sum()
+    // Lesson learned: using a `fold` to accumulate values instead of `sum`
+    input.lines().fold(0, |acc, line| acc + area_one_box(&line.to_string()))
 }
 
 fn area_one_box(dim_string: &String) -> i32 {
@@ -60,14 +57,8 @@ fn area_one_box(dim_string: &String) -> i32 {
     rectangle.area() + min_array(rectangle.get_areas())
 }
 
-pub fn extra(dim_boxes_str: &String) -> i32 {
-    let mut length = 0;
-
-    for line in dim_boxes_str.lines() {
-        length += length_one_box(&line.to_string());
-    }
-
-    length
+pub fn extra(input: &String) -> i32 {
+    input.lines().fold(0, |acc, line| acc + length_one_box(&line.to_string()))
 }
 
 fn length_one_box(dim_string: &String) -> i32 {
@@ -106,4 +97,3 @@ pub mod tests {
         assert_one_expected(&expected_double, extra);
     }
 }
-
