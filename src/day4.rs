@@ -11,6 +11,9 @@ pub fn main(input: &String, num_zeros: usize) -> Result<i32, &str> {
     // Lesson learned: How to set a variable number of zeros
     let needle = format!("{:0width$}", 0, width=num_zeros);
 
+    // Lesson learned: `trim` removes whitespace characters
+    let input = input.trim();
+
     // Lesson learned: Sending results between threads over channels
     let (tx, rx) = mpsc::channel();
     let mut i = 0;
