@@ -1,16 +1,54 @@
 extern crate md5;
+
 use std;
+use std::thread;
+use std::sync::mpsc;
+
+const NTHREADS: i32 = 8;
 
 // Lesson learned: returning Result and getting the max of a type
 pub fn main(input: &String, num_zeros: usize) -> Result<i32, &str> {
     // Lesson learned: How to set a variable number of zeros
     let needle = format!("{:0width$}", 0, width=num_zeros);
 
-    for i in 0..std::i32::MAX {
-        // Lesson learned: Creating formatted strings
-        let string = format!("{}{}", input, i);
+    // Lesson learned: Sending results between threads over channels
+    let (tx, rx) = mpsc::channel();
+    let mut i = 0;
 
-        if get_hash(&string).starts_with(&needle) {
+    while i < std::i32::MAX {
+        // Every thread calculates a hash for one number and sends match
+        for _ in 0..NTHREADS {
+            let tx = tx.clone();
+            let needle = needle.clone();
+
+            // Lesson learned: Creating formatted strings
+            let string = format!("{}{}", input, i);
+
+            thread::spawn(move || {
+                let result = if get_hash(&string).starts_with(&needle) {
+                    Some(i)
+                }
+                else {
+                    None
+                };
+
+                tx.send(result).unwrap();
+            });
+
+            i += 1;
+        }
+
+        let mut results = Vec::new();
+
+        // After every loop, main thread retrieves any successes
+        // and returns minimum, else continues
+        for _ in 0..NTHREADS {
+            if let Some(i) = rx.recv().unwrap() {
+                results.push(i);
+            }
+        }
+
+        if let Some(&i) = results.iter().min() {
             return Ok(i)
         }
     }
