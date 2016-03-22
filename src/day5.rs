@@ -44,11 +44,11 @@ fn has_doublette_with_sep(input: &str, sep: usize) -> bool {
 
     // Lesson learned: Zipping iterators
     // `zip` uses into_iterator which duplicates the input
-    let mut iter = current.zip(ahead);
+    let iter = current.zip(ahead);
 
     // `zip` yields Some(a, b) while both iterators give values
     // could also use iterators and `by_ref` to borrow in for loop but ugly
-    while let Some((a, b)) = iter.next() {
+    for (a, b) in iter {
         if a == b {
             return true;
         }
@@ -61,18 +61,18 @@ fn has_pair_without_overlap(input: &str) -> bool {
     let current = input.chars();
     let next = input.chars().skip(1);
 
-    let mut iter = current.zip(next);
-    let mut i = 0;
+    let iter = current.zip(next);
 
-    while let Some((a, b)) = iter.next() {
+    // Lesson learned: `for` loops break at end of `zip` iterators
+    // Obviously! No need to be too clever with pattern matching
+    // if there is no need for something exotic
+    for (i, (a, b)) in iter.enumerate() {
         let needle = &format!("{}{}", a, b);
         let (_, haystack) = input.split_at(i+2);
 
         if haystack.contains(needle) {
             return true;
         }
-
-        i += 1;
     }
 
     false
