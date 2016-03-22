@@ -4,6 +4,7 @@ mod day2;
 mod day3;
 mod day4;
 mod day5;
+mod day6;
 mod utils;
 
 use utils::read_file;
@@ -44,6 +45,13 @@ fn main() {
         println!("Day 5");
         println!("  Main:  {}", day5::main(&day5_data));
         println!("  Extra: {}", day5::extra(&day5_data));
+        println!("");
+    }
+
+    if let Ok(day6_data) = read_file("example_files/day6_input.txt") {
+        println!("Day 6");
+        println!("  Main:  {}", day6::main(&day6_data));
+        //println!("  Extra: {}", day5::extra(&day5_data));
         println!("");
     }
 }
