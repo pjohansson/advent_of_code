@@ -44,7 +44,7 @@ impl Slice {
     }
 
     fn from_str(input: &str) -> Slice {
-        let (c0, c1) = get_coordinate_pairs(&input);
+        let (c0, c1) = get_coordinate_pairs(&input).unwrap();
         Slice::new(c0, c1)
     }
 
@@ -70,7 +70,7 @@ impl Slice {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 enum Instruction {
     TurnOn,
     TurnOff,
@@ -100,24 +100,30 @@ impl Iterator for Slice {
 }
 
 pub fn main(input: &str) -> i32 {
-    let mut light_array: Vec<i32> = vec!(0; 1000000);
+    let mut array: Vec<i32> = vec!(0; 1000000);
 
     for line in input.lines() {
-        let instruction = get_instruction(line).unwrap();
-
-        for index in Slice::from_str(&line) {
-            let light = light_array[index];
-
-            match instruction {
-                Toggle if light == 1 => light_array[index] = 0,
-                Toggle               => light_array[index] = 1,
-                TurnOn               => light_array[index] = 1,
-                TurnOff              => light_array[index] = 0,
+        if let Some(instruction) = get_instruction(line) {
+            for index in Slice::from_str(&line) {
+                switch_light(&mut array[index], instruction);
             }
+        }
+        else {
+            println!("Warning: Could not parse instruction in {:?}", line);
         }
     }
 
-    light_array.into_iter().fold(0, |acc, light| acc + light)
+    array.into_iter().fold(0, |acc, light| acc + light)
+}
+
+fn switch_light(light: &mut i32, instruction: Instruction) {
+    match instruction {
+        // Lesson learned: Access element of reference by dereferencing
+        Toggle if *light == 1 => *light = 0,
+        Toggle                => *light = 1,
+        TurnOn                => *light = 1,
+        TurnOff               => *light = 0,
+    }
 }
 
 fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
@@ -128,7 +134,7 @@ fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)>
     None
 }
 
-fn get_coordinate_pairs(input: &str) -> (Coordinate, Coordinate) {
+fn get_coordinate_pairs(input: &str) -> Option<(Coordinate, Coordinate)> {
     let words: Vec<&str> = input.split_whitespace()
                                 .collect();
 
@@ -141,10 +147,10 @@ fn get_coordinate_pairs(input: &str) -> (Coordinate, Coordinate) {
         Some(i) => get_words(words, i-1, i+1),
         _       => None,
     } {
-        return (Coordinate::new(one), Coordinate::new(two));
+        return Some((Coordinate::new(one), Coordinate::new(two)));
     }
 
-    panic!("Error: Could not parse coordinates from input {:?}", input);
+    None
 }
 
 fn get_instruction(input: &str) -> Option<Instruction> {
@@ -173,7 +179,7 @@ pub mod tests {
 
     #[test]
     fn coordinate_pairs() {
-        assert_eq!((Coordinate(0,0), Coordinate(999,0)), super::get_coordinate_pairs("turn on 0,0 through 999,0"));
+        assert_eq!((Coordinate(0,0), Coordinate(999,0)), super::get_coordinate_pairs("turn on 0,0 through 999,0").unwrap());
     }
 
     #[test]
