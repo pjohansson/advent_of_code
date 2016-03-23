@@ -107,16 +107,17 @@ impl Iterator for Slice {
 }
 
 pub fn main(input: &str, rule: Rule) -> i32 {
-    let mut array: Vec<i32> = vec!(0; 1000000);
+    let mut array: Vec<i32> = vec!(0; 1000*1000);
 
-    for line in input.lines() {
+    for (i, line) in input.lines().enumerate() {
         if let Some(instruction) = get_instruction(line) {
             for index in Slice::from_str(&line) {
                 switch_light(&mut array[index], instruction, rule);
             }
         }
         else {
-            println!("Warning: Could not parse instruction in {:?}", line);
+            println!("Warning: Could not parse instruction in line {} ({:?})",
+                     i, line);
         }
     }
 
@@ -145,6 +146,7 @@ fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)>
     if let (Some(&w1), Some(&w2)) = (array.get(pos1), array.get(pos2)) {
         return Some((w1, w2));
     }
+
     None
 }
 
