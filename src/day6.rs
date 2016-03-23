@@ -77,8 +77,15 @@ enum Instruction {
     Toggle,
 }
 
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Rule {
+    Main,
+    Extra
+}
+
 // Lesson learned: Importing nested namespace methods from self
 use self::Instruction::*;
+use self::Rule::*;
 
 // Lesson learned: Implementing an Iterator method for a struct
 impl Iterator for Slice {
@@ -99,13 +106,13 @@ impl Iterator for Slice {
     }
 }
 
-pub fn main(input: &str) -> i32 {
+pub fn main(input: &str, rule: Rule) -> i32 {
     let mut array: Vec<i32> = vec!(0; 1000000);
 
     for line in input.lines() {
         if let Some(instruction) = get_instruction(line) {
             for index in Slice::from_str(&line) {
-                switch_light(&mut array[index], instruction);
+                switch_light(&mut array[index], instruction, rule);
             }
         }
         else {
@@ -116,13 +123,20 @@ pub fn main(input: &str) -> i32 {
     array.into_iter().fold(0, |acc, light| acc + light)
 }
 
-fn switch_light(light: &mut i32, instruction: Instruction) {
-    match instruction {
-        // Lesson learned: Access element of reference by dereferencing
-        Toggle if *light == 1 => *light = 0,
-        Toggle                => *light = 1,
-        TurnOn                => *light = 1,
-        TurnOff               => *light = 0,
+fn switch_light(light: &mut i32, instruction: Instruction, rule: Rule) {
+    match rule {
+        Main => match instruction {
+            Toggle if *light == 1 => *light = 0,
+            Toggle                => *light = 1,
+            TurnOn                => *light = 1,
+            TurnOff               => *light = 0,
+        },
+        Extra => match instruction {
+            Toggle                => *light += 2,
+            TurnOn                => *light += 1,
+            TurnOff if *light > 0 => *light -= 1,
+            _                     => (),
+        }
     }
 }
 
@@ -169,7 +183,9 @@ fn get_instruction(input: &str) -> Option<Instruction> {
 #[cfg(test)]
 pub mod tests {
     use super::*;
-    use super::{Coordinate, Slice, Instruction};
+    use super::{Coordinate, Slice};
+    use super::Instruction::*;
+    use super::Rule::*;
 
     #[test]
     fn coordinate_pair() {
@@ -198,17 +214,17 @@ pub mod tests {
 
     #[test]
     fn single_commands() {
-        assert_eq!(1000000, main("turn on 0,0 through 999,999"));
-        assert_eq!(1000, main("turn on 0,0 through 999,0"));
-        assert_eq!(1000, main("toggle 0,0 through 999,0"));
-        assert_eq!(0, main("turn off 0,0 through 999,0"));
+        assert_eq!(1000000, main("turn on 0,0 through 999,999", Main));
+        assert_eq!(1000, main("turn on 0,0 through 999,0", Main));
+        assert_eq!(1000, main("toggle 0,0 through 999,0", Main));
+        assert_eq!(0, main("turn off 0,0 through 999,0", Main));
     }
 
     #[test]
     fn instructions() {
-        assert_eq!(Instruction::Toggle, super::get_instruction("toggle 0,0 through 999,0").unwrap());
-        assert_eq!(Instruction::TurnOn, super::get_instruction("turn on 0,0 through 999,999").unwrap());
-        assert_eq!(Instruction::TurnOff, super::get_instruction("turn off 0,0 through 999,0").unwrap());
+        assert_eq!(Toggle, super::get_instruction("toggle 0,0 through 999,0").unwrap());
+        assert_eq!(TurnOn, super::get_instruction("turn on 0,0 through 999,999").unwrap());
+        assert_eq!(TurnOff, super::get_instruction("turn off 0,0 through 999,0").unwrap());
     }
 
     #[test]

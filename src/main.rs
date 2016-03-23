@@ -50,8 +50,8 @@ fn main() {
 
     if let Ok(day6_data) = read_file("example_files/day6_input.txt") {
         println!("Day 6");
-        println!("  Main:  {}", day6::main(&day6_data));
-        //println!("  Extra: {}", day5::extra(&day5_data));
+        println!("  Main:  {}", day6::main(&day6_data, day6::Rule::Main));
+        println!("  Extra: {}", day6::main(&day6_data, day6::Rule::Extra));
         println!("");
     }
 }
