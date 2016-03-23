@@ -77,6 +77,9 @@ enum Instruction {
     Toggle,
 }
 
+// Lesson learned: Importing nested namespace methods from self
+use self::Instruction::*;
+
 // Lesson learned: Implementing an Iterator method for a struct
 impl Iterator for Slice {
     type Item = usize;
@@ -97,48 +100,63 @@ impl Iterator for Slice {
 }
 
 pub fn main(input: &str) -> i32 {
-    let mut light_array = vec!(false; 1000000);
+    let mut light_array: Vec<i32> = vec!(0; 1000000);
 
     for line in input.lines() {
         let instruction = get_instruction(line).unwrap();
 
         for index in Slice::from_str(&line) {
+            let light = light_array[index];
+
             match instruction {
-                Instruction::Toggle  => light_array[index] = !light_array[index],
-                Instruction::TurnOn  => light_array[index] = true,
-                Instruction::TurnOff => light_array[index] = false,
+                Toggle if light == 1 => light_array[index] = 0,
+                Toggle               => light_array[index] = 1,
+                TurnOn               => light_array[index] = 1,
+                TurnOff              => light_array[index] = 0,
             }
         }
     }
 
-    light_array.into_iter().filter(|&light| { light }).count() as i32
+    light_array.into_iter().fold(0, |acc, light| acc + light)
+}
+
+fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
+    // Lesson learned: use `get` to safely access elements of a Vec
+    if let (Some(&w1), Some(&w2)) = (array.get(pos1), array.get(pos2)) {
+        return Some((w1, w2));
+    }
+    None
 }
 
 fn get_coordinate_pairs(input: &str) -> (Coordinate, Coordinate) {
-    let words: Vec<&str> = input.split_whitespace().collect();
+    let words: Vec<&str> = input.split_whitespace()
+                                .collect();
 
     // Lesson learned: use `position` or `find` with a closure to search
     // through a Vec (as an iterator)
-    let pos = words.iter().position(|&word| word == "through").unwrap();
 
-    // Lesson learned: use `get` to safely access elements of a Vec
-    // Returns an Option which I don't care about here
-    let c0 = Coordinate::new(words.get(pos-1).unwrap());
-    let c1 = Coordinate::new(words.get(pos+1).unwrap());
+    let pos = words.iter().position(|&w| w == "through");
 
-    (c0, c1)
+    if let Some((one, two)) = match pos {
+        Some(i) => get_words(words, i-1, i+1),
+        _       => None,
+    } {
+        return (Coordinate::new(one), Coordinate::new(two));
+    }
+
+    panic!("Error: Could not parse coordinates from input {:?}", input);
 }
 
 fn get_instruction(input: &str) -> Option<Instruction> {
-    let words: Vec<&str> = input.split_whitespace().collect();
+    let words: Vec<&str> = input.split_whitespace()
+                                .take(2)
+                                .collect();
 
-    match words.get(0).unwrap() {
-        &"toggle" => Some(Instruction::Toggle),
-        _         => match words.get(1).unwrap() {
-            &"on"  => Some(Instruction::TurnOn),
-            &"off" => Some(Instruction::TurnOff),
-            _      => None,
-        },
+    match get_words(words, 0, 1) {
+        Some(("toggle", _))   => Some(Toggle),
+        Some(("turn", "on"))  => Some(TurnOn),
+        Some(("turn", "off")) => Some(TurnOff),
+        _                     => None,
     }
 }
 
