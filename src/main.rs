@@ -5,8 +5,9 @@ mod day3;
 mod day4;
 mod day5;
 mod day6;
-mod utils;
+mod day7;
 
+mod utils;
 use utils::read_file;
 
 fn main() {
