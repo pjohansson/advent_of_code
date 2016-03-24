@@ -6,14 +6,13 @@ pub fn main(input: &str, rule: Rule) -> usize {
     let mut lights = LightArray::new(1000, 1000);
 
     for (i, line) in input.lines().enumerate() {
-        if let Ok(instruction) = get_instruction(line) {
-            for index in lights.slice_from_str(line) {
-                switch_light(&mut lights.array[index], instruction, rule);
-            }
-        }
-        else {
-            println!("Warning: Could not parse instruction in line {} ({:?})",
-                     i, line);
+        match (get_instruction(line), lights.slice_from_str(line)) {
+            (Ok(instruction), Ok(slice)) => {
+                for index in slice {
+                    switch_light(&mut lights.array[index], instruction, rule);
+                }
+            },
+            _ => println!("Could not parse line {} ({:?}).", i+1, line),
         }
     }
 
@@ -61,7 +60,9 @@ impl LightArray {
         LightArray{array: vec!(0; x*y), shape: Coordinate(x, y)}
     }
 
-    fn slice_from_str(&self, line: &str) -> Slice {
+    // Lesson learned: In this case the borrowed line must live 
+    // for as long as the slicing function and it's results (I think)
+    fn slice_from_str<'a>(&'a self, line: &'a str) -> Result<Slice, &str> {
         Slice::from_str(line, self.shape)
     }
 }
@@ -70,12 +71,12 @@ impl LightArray {
 struct Coordinate(usize, usize);
 
 impl Coordinate {
-    fn from_str(input: &str) -> Coordinate {
+    fn from_str(input: &str) -> Result<Coordinate, &str> {
         let coords: Vec<usize> = input.split(",")
                                       .map(|cs| cs.parse::<usize>().unwrap())
-                                      .collect();
+                                      .take(2).collect();
 
-        Coordinate(coords[0], coords[1])
+        Ok(Coordinate(coords[0], coords[1]))
     }
 }
 
@@ -92,9 +93,11 @@ impl Slice {
         Slice {begin: begin, end: end, limits: limits, current: Some(current)}
     }
 
-    fn from_str(input: &str, shape: Coordinate) -> Slice {
-        let (begin, end) = get_coordinate_pairs(input).unwrap();
-        Slice::new(begin, end, shape)
+    fn from_str(input: &str, shape: Coordinate) -> Result<Slice, &str> {
+        match get_coordinate_pairs(input) {
+            Ok((begin, end)) => Ok(Slice::new(begin, end, shape)),
+            Err(error)       => Err(error),
+        }
     }
 
     fn index(&self, Coordinate(x, y): Coordinate) -> usize {
@@ -136,22 +139,24 @@ impl Iterator for Slice {
     }
 }
 
-fn get_coordinate_pairs(input: &str) -> Option<(Coordinate, Coordinate)> {
+fn get_coordinate_pairs(input: &str) -> Result<(Coordinate, Coordinate), &str> {
     let words: Vec<&str> = input.split_whitespace()
                                 .collect();
 
     // Lesson learned: use `position` or `find` with a closure to search
     // through a Vec (as an iterator)
     let pos = words.iter().position(|&w| w == "through");
-
+    
     if let Some((one, two)) = match pos {
         Some(i) => get_words(words, i-1, i+1),
         _       => None,
     } {
-        return Some((Coordinate::from_str(one), Coordinate::from_str(two)));
+        if let (Ok(coord1), Ok(coord2)) = (Coordinate::from_str(one), Coordinate::from_str(two)) {
+            return Ok((coord1, coord2));
+        }
     }
 
-    None
+    Err("Could not parse coordinates from input string.")
 }
 
 fn get_instruction(input: &str) -> Result<Instruction, &str> {
@@ -184,15 +189,15 @@ pub mod tests {
     use super::Rule::*;
 
     #[test]
-    fn coordinate_pair() {
-        assert_eq!(Coordinate(0, 999), Coordinate::from_str("0,999"));
-        assert_eq!(Coordinate(5, 0), Coordinate::from_str("5,0"));
+    fn parse_coordinate() {
+        assert_eq!(Ok(Coordinate(0, 999)), Coordinate::from_str("0,999"));
+        assert_eq!(Ok(Coordinate(5, 0)), Coordinate::from_str("5,0"));
     }
 
     #[test]
-    fn coordinate_pairs() {
-        assert_eq!((Coordinate(0,0), Coordinate(999,0)), 
-            super::get_coordinate_pairs("turn on 0,0 through 999,0").unwrap());
+    fn parse_pair_of_coordinates() {
+        assert_eq!(Ok((Coordinate(0,0), Coordinate(999,0))), 
+            super::get_coordinate_pairs("turn on 0,0 through 999,0"));
     }
 
     #[test]
@@ -241,5 +246,19 @@ pub mod tests {
         expected = (998998..999000).chain(999998..1000000).collect();
         result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
+    }
+    
+    #[test]
+    fn iterator_from_str() {
+        let shape = Coordinate(1000, 1000);
+        
+        match Slice::from_str("toggle 0,0 through 10,1", shape) {
+            Ok(slice) => {
+                let expected: Vec<usize> = (0..11).chain(1000..1011).collect();
+                let result: Vec<usize> = slice.collect();
+                assert_eq!(expected, result);
+            },
+            Err(error)  => panic!(error),
+        };
     }
 }
