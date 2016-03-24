@@ -72,11 +72,16 @@ struct Coordinate(usize, usize);
 
 impl Coordinate {
     fn from_str(input: &str) -> Result<Coordinate, &str> {
+        // Lesson learned: Use `filter_map` to automatically extract values
+        // from Option  in array
         let coords: Vec<usize> = input.split(",")
-                                      .map(|cs| cs.parse::<usize>().unwrap())
+                                      .filter_map(|cs| cs.parse::<usize>().ok())
                                       .take(2).collect();
-
-        Ok(Coordinate(coords[0], coords[1]))
+                                      
+        match (coords.get(0), coords.get(1)) {
+            (Some(&x), Some(&y)) => Ok(Coordinate(x, y)),
+            _                    => Err("Could not parse coordinate."),
+        }
     }
 }
 
@@ -192,6 +197,12 @@ pub mod tests {
     fn parse_coordinate() {
         assert_eq!(Ok(Coordinate(0, 999)), Coordinate::from_str("0,999"));
         assert_eq!(Ok(Coordinate(5, 0)), Coordinate::from_str("5,0"));
+    }
+    #[test]
+    fn parse_bad_coordinate() {
+        assert_eq!(Err("Could not parse coordinate."), Coordinate::from_str("0"));
+        assert_eq!(Err("Could not parse coordinate."), Coordinate::from_str("bad"));
+        assert_eq!(Err("Could not parse coordinate."), Coordinate::from_str(""));
     }
 
     #[test]
