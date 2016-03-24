@@ -6,7 +6,7 @@ pub fn main(input: &str, rule: Rule) -> usize {
     let mut lights = LightArray::new(1000, 1000);
 
     for (i, line) in input.lines().enumerate() {
-        match (get_instruction(line), lights.slice_from_str(line)) {
+        match (read_instruction(line), lights.slice_from_str(line)) {
             (Ok(instruction), Ok(slice)) => {
                 for index in slice {
                     switch_light(&mut lights.array[index], instruction, rule);
@@ -23,6 +23,13 @@ pub fn main(input: &str, rule: Rule) -> usize {
 pub enum Rule {
     Main,
     Extra
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum Instruction {
+    TurnOn,
+    TurnOff,
+    Toggle,
 }
 
 fn switch_light(light: &mut usize, instruction: Instruction, rule: Rule) {
@@ -43,13 +50,6 @@ fn switch_light(light: &mut usize, instruction: Instruction, rule: Rule) {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum Instruction {
-    TurnOn,
-    TurnOff,
-    Toggle,
-}
-
 struct LightArray {
     array: Vec<usize>,
     shape: Coordinate,
@@ -67,24 +67,6 @@ impl LightArray {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-struct Coordinate(usize, usize);
-
-impl Coordinate {
-    fn from_str(input: &str) -> Result<Coordinate, &str> {
-        // Lesson learned: Use `filter_map` to automatically extract values
-        // from Option  in array
-        let coords: Vec<usize> = input.split(",")
-                                      .filter_map(|cs| cs.parse::<usize>().ok())
-                                      .take(2).collect();
-                                      
-        match (coords.get(0), coords.get(1)) {
-            (Some(&x), Some(&y)) => Ok(Coordinate(x, y)),
-            _                    => Err("Could not parse coordinate."),
-        }
-    }
-}
-
 struct Slice {
     begin: Coordinate,
     end: Coordinate,
@@ -99,7 +81,7 @@ impl Slice {
     }
 
     fn from_str(input: &str, shape: Coordinate) -> Result<Slice, &str> {
-        match get_coordinate_pairs(input) {
+        match read_coordinate_pairs(input) {
             Ok((begin, end)) => Ok(Slice::new(begin, end, shape)),
             Err(error)       => Err(error),
         }
@@ -144,7 +126,25 @@ impl Iterator for Slice {
     }
 }
 
-fn get_coordinate_pairs(input: &str) -> Result<(Coordinate, Coordinate), &str> {
+#[derive(Copy, Clone, Debug, PartialEq)]
+struct Coordinate(usize, usize);
+
+impl Coordinate {
+    fn from_str(input: &str) -> Result<Coordinate, &str> {
+        // Lesson learned: Use `filter_map` to automatically extract values
+        // from Option  in array
+        let coords: Vec<usize> = input.split(",")
+                                      .filter_map(|cs| cs.parse::<usize>().ok())
+                                      .take(2).collect();
+                                      
+        match (coords.get(0), coords.get(1)) {
+            (Some(&x), Some(&y)) => Ok(Coordinate(x, y)),
+            _                    => Err("Could not parse coordinate."),
+        }
+    }
+}
+
+fn read_coordinate_pairs(input: &str) -> Result<(Coordinate, Coordinate), &str> {
     let words: Vec<&str> = input.split_whitespace()
                                 .collect();
 
@@ -153,7 +153,7 @@ fn get_coordinate_pairs(input: &str) -> Result<(Coordinate, Coordinate), &str> {
     let pos = words.iter().position(|&w| w == "through");
     
     if let Some((one, two)) = match pos {
-        Some(i) => get_words(words, i-1, i+1),
+        Some(i) => get_two_words(words, i-1, i+1),
         _       => None,
     } {
         if let (Ok(coord1), Ok(coord2)) = (Coordinate::from_str(one), Coordinate::from_str(two)) {
@@ -164,12 +164,12 @@ fn get_coordinate_pairs(input: &str) -> Result<(Coordinate, Coordinate), &str> {
     Err("Could not parse coordinates from input string.")
 }
 
-fn get_instruction(input: &str) -> Result<Instruction, &str> {
+fn read_instruction(input: &str) -> Result<Instruction, &str> {
     let words: Vec<&str> = input.split_whitespace()
                                 .take(2)
                                 .collect();
 
-    match get_words(words, 0, 1) {
+    match get_two_words(words, 0, 1) {
         Some(("toggle", _))   => Ok(Toggle),
         Some(("turn", "on"))  => Ok(TurnOn),
         Some(("turn", "off")) => Ok(TurnOff),
@@ -177,7 +177,7 @@ fn get_instruction(input: &str) -> Result<Instruction, &str> {
     }
 }
 
-fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
+fn get_two_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
     // Lesson learned: use `get` to safely access elements of a Vec
     if let (Some(&w1), Some(&w2)) = (array.get(pos1), array.get(pos2)) {
         return Some((w1, w2));
@@ -208,7 +208,7 @@ pub mod tests {
     #[test]
     fn parse_pair_of_coordinates() {
         assert_eq!(Ok((Coordinate(0,0), Coordinate(999,0))), 
-            super::get_coordinate_pairs("turn on 0,0 through 999,0"));
+            super::read_coordinate_pairs("turn on 0,0 through 999,0"));
     }
 
     #[test]
@@ -221,13 +221,13 @@ pub mod tests {
 
     #[test]
     fn instructions() {
-        assert_eq!(Ok(Toggle), super::get_instruction("toggle 0,0 through 999,0"));
-        assert_eq!(Ok(TurnOn), super::get_instruction("turn on 0,0 through 999,999"));
-        assert_eq!(Ok(TurnOff), super::get_instruction("turn off 0,0 through 999,0"));
+        assert_eq!(Ok(Toggle), super::read_instruction("toggle 0,0 through 999,0"));
+        assert_eq!(Ok(TurnOn), super::read_instruction("turn on 0,0 through 999,999"));
+        assert_eq!(Ok(TurnOff), super::read_instruction("turn off 0,0 through 999,0"));
     }
 
     #[test]
-    fn iterator() {
+    fn get_iterator() {
         let mut c0 = Coordinate(0, 0);
         let mut c1 = Coordinate(10, 0);
         let shape = Coordinate(1000, 1000);
