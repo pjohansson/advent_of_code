@@ -1,3 +1,56 @@
+// Lesson learned: Importing nested namespace methods from self
+use self::Instruction::*;
+use self::Rule::*;
+
+pub fn main(input: &str, rule: Rule) -> usize {
+    let mut lights = LightArray::new(1000, 1000);
+
+    for (i, line) in input.lines().enumerate() {
+        if let Some(instruction) = get_instruction(line) {
+            for index in lights.slice_from_str(line) {
+                switch_light(&mut lights.array[index], instruction, rule);
+            }
+        }
+        else {
+            println!("Warning: Could not parse instruction in line {} ({:?})",
+                     i, line);
+        }
+    }
+
+    lights.array.into_iter().fold(0, |acc, light| acc + light)
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum Rule {
+    Main,
+    Extra
+}
+
+fn switch_light(light: &mut usize, instruction: Instruction, rule: Rule) {
+    match rule {
+        Main => match instruction {
+            Toggle if *light == 1 => *light = 0,
+            Toggle                => *light = 1,
+            TurnOn                => *light = 1,
+            TurnOff               => *light = 0,
+        },
+
+        Extra => match instruction {
+            Toggle                => *light += 2,
+            TurnOn                => *light += 1,
+            TurnOff if *light > 0 => *light -= 1,
+            _                     => (),
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+enum Instruction {
+    TurnOn,
+    TurnOff,
+    Toggle,
+}
+
 struct LightArray {
     array: Vec<usize>,
     shape: Coordinate,
@@ -84,75 +137,12 @@ impl Iterator for Slice {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq)]
-enum Instruction {
-    TurnOn,
-    TurnOff,
-    Toggle,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Rule {
-    Main,
-    Extra
-}
-
-// Lesson learned: Importing nested namespace methods from self
-use self::Instruction::*;
-use self::Rule::*;
-
-pub fn main(input: &str, rule: Rule) -> usize {
-    let mut lights = LightArray::new(1000, 1000);
-
-    for (i, line) in input.lines().enumerate() {
-        if let Some(instruction) = get_instruction(line) {
-            for index in lights.slice_from_str(line) {
-                switch_light(&mut lights.array[index], instruction, rule);
-            }
-        }
-        else {
-            println!("Warning: Could not parse instruction in line {} ({:?})",
-                     i, line);
-        }
-    }
-
-    lights.array.into_iter().fold(0, |acc, light| acc + light)
-}
-
-fn switch_light(light: &mut usize, instruction: Instruction, rule: Rule) {
-    match rule {
-        Main => match instruction {
-            Toggle if *light == 1 => *light = 0,
-            Toggle                => *light = 1,
-            TurnOn                => *light = 1,
-            TurnOff               => *light = 0,
-        },
-
-        Extra => match instruction {
-            Toggle                => *light += 2,
-            TurnOn                => *light += 1,
-            TurnOff if *light > 0 => *light -= 1,
-            _                     => (),
-        }
-    }
-}
-
-fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
-    // Lesson learned: use `get` to safely access elements of a Vec
-    if let (Some(&w1), Some(&w2)) = (array.get(pos1), array.get(pos2)) {
-        return Some((w1, w2));
-    }
-
-    None
-}
-
 fn get_coordinate_pairs(input: &str) -> Option<(Coordinate, Coordinate)> {
     let words: Vec<&str> = input.split_whitespace()
                                 .collect();
 
     // Lesson learned: use `position` or `find` with a closure to search
     // through a Vec (as an iterator)
-
     let pos = words.iter().position(|&w| w == "through");
 
     if let Some((one, two)) = match pos {
@@ -176,6 +166,15 @@ fn get_instruction(input: &str) -> Option<Instruction> {
         Some(("turn", "off")) => Some(TurnOff),
         _                     => None,
     }
+}
+
+fn get_words(array: Vec<&str>, pos1: usize, pos2: usize) -> Option<(&str, &str)> {
+    // Lesson learned: use `get` to safely access elements of a Vec
+    if let (Some(&w1), Some(&w2)) = (array.get(pos1), array.get(pos2)) {
+        return Some((w1, w2));
+    }
+
+    None
 }
 
 #[cfg(test)]
