@@ -1,72 +1,86 @@
+struct LightArray {
+    array: Vec<usize>,
+    shape: Coordinate,
+}
+
+impl LightArray {
+    fn new(x: usize, y: usize) -> LightArray {
+        LightArray{array: vec!(0; x*y), shape: Coordinate(x, y)}
+    }
+
+    fn slice_from_str(&self, line: &str) -> Slice {
+        Slice::from_str(line, self.shape)
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq)]
 struct Coordinate(usize, usize);
 
 impl Coordinate {
-    fn new(input: &str) -> Coordinate {
+    fn from_str(input: &str) -> Coordinate {
         let coords: Vec<usize> = input.split(",")
                                       .map(|cs| cs.parse::<usize>().unwrap())
                                       .collect();
 
         Coordinate(coords[0], coords[1])
     }
-
-    fn index(&self) -> usize {
-        self.0 + self.1*1000
-    }
-
-    fn next(&self) -> Option<Coordinate> {
-        let (mut x, mut y) = (self.0+1, self.1);
-
-        if x >= 1000 {
-            x = 0;
-            y += 1;
-        }
-
-        if y >= 1000 {
-            return None
-        }
-
-        Some(Coordinate(x, y))
-    }
 }
 
 struct Slice {
     begin: Coordinate,
     end: Coordinate,
+    limits: Coordinate,
     current: Option<Coordinate>,
 }
 
 impl Slice {
-    fn new(c0: Coordinate, c1: Coordinate) -> Slice {
-        let current = Coordinate(c0.0, c0.1);
-
-        Slice { begin: c0.clone(), end: c1.clone(), current: Some(current) }
+    fn new(begin: Coordinate, end: Coordinate, limits: Coordinate) -> Slice {
+        let current = begin;
+        Slice {begin: begin, end: end, limits: limits, current: Some(current)}
     }
 
-    fn from_str(input: &str) -> Slice {
-        let (c0, c1) = get_coordinate_pairs(&input).unwrap();
-        Slice::new(c0, c1)
+    fn from_str(input: &str, shape: Coordinate) -> Slice {
+        let (begin, end) = get_coordinate_pairs(input).unwrap();
+        Slice::new(begin, end, shape)
     }
 
-    fn to_slice(&self, coord: Coordinate) -> Option<Coordinate> {
-        // Get limits
-        let Coordinate(x0, _)  = self.begin;
-        let Coordinate(x1, y1) = self.end;
-        let Coordinate(mut x, mut y) = coord;
+    fn index(&self, Coordinate(x, y): Coordinate) -> usize {
+        let Coordinate(xmax, _) = self.limits;
+        x + y*xmax
+    }
+}
 
-        if x < x0 {
-            x = x0;
-        }
-        else if x > x1 {
-            x = x0;
-            y += 1;
-        }
+// Lesson learned: Implementing an Iterator method for a struct
+impl Iterator for Slice {
+    type Item = usize;
 
-        if y > y1 {
-            return None
-        }
+    fn next(&mut self) -> Option<usize> {
+        match self.current {
+            None                   => None,
+            Some(Coordinate(x, y)) => {
+                let Coordinate(xmin, _) = self.begin;
+                let Coordinate(xmax, ymax) = self.end;
 
-        Some(Coordinate(x, y))
+                self.current = {
+                    let mut xnext = x + 1;
+                    let mut ynext = y;
+
+                    if xnext > xmax {
+                        xnext = xmin;
+                        ynext += 1;
+                    }
+
+                    if ynext > ymax {
+                        None
+                    }
+                    else {
+                        Some(Coordinate(xnext, ynext))
+                    }
+                };
+
+                Some(self.index(Coordinate(x, y)))
+            },
+        }
     }
 }
 
@@ -87,32 +101,13 @@ pub enum Rule {
 use self::Instruction::*;
 use self::Rule::*;
 
-// Lesson learned: Implementing an Iterator method for a struct
-impl Iterator for Slice {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<usize> {
-        // Pattern match current position to ensure that it's available,
-        // then ensure that it is within the limits and advance it
-        if let Some(current) = self.current {
-            if let Some(adjusted) = self.to_slice(current) {
-                self.current = adjusted.next();
-
-                return Some(adjusted.index())
-            }
-        }
-
-        None
-    }
-}
-
-pub fn main(input: &str, rule: Rule) -> i32 {
-    let mut array: Vec<i32> = vec!(0; 1000*1000);
+pub fn main(input: &str, rule: Rule) -> usize {
+    let mut lights = LightArray::new(1000, 1000);
 
     for (i, line) in input.lines().enumerate() {
         if let Some(instruction) = get_instruction(line) {
-            for index in Slice::from_str(&line) {
-                switch_light(&mut array[index], instruction, rule);
+            for index in lights.slice_from_str(line) {
+                switch_light(&mut lights.array[index], instruction, rule);
             }
         }
         else {
@@ -121,10 +116,10 @@ pub fn main(input: &str, rule: Rule) -> i32 {
         }
     }
 
-    array.into_iter().fold(0, |acc, light| acc + light)
+    lights.array.into_iter().fold(0, |acc, light| acc + light)
 }
 
-fn switch_light(light: &mut i32, instruction: Instruction, rule: Rule) {
+fn switch_light(light: &mut usize, instruction: Instruction, rule: Rule) {
     match rule {
         Main => match instruction {
             Toggle if *light == 1 => *light = 0,
@@ -132,6 +127,7 @@ fn switch_light(light: &mut i32, instruction: Instruction, rule: Rule) {
             TurnOn                => *light = 1,
             TurnOff               => *light = 0,
         },
+
         Extra => match instruction {
             Toggle                => *light += 2,
             TurnOn                => *light += 1,
@@ -163,7 +159,7 @@ fn get_coordinate_pairs(input: &str) -> Option<(Coordinate, Coordinate)> {
         Some(i) => get_words(words, i-1, i+1),
         _       => None,
     } {
-        return Some((Coordinate::new(one), Coordinate::new(two)));
+        return Some((Coordinate::from_str(one), Coordinate::from_str(two)));
     }
 
     None
@@ -191,27 +187,13 @@ pub mod tests {
 
     #[test]
     fn coordinate_pair() {
-        assert_eq!(Coordinate(0, 999), Coordinate::new("0,999"));
-        assert_eq!(Coordinate(5, 0), Coordinate::new("5,0"));
+        assert_eq!(Coordinate(0, 999), Coordinate::from_str("0,999"));
+        assert_eq!(Coordinate(5, 0), Coordinate::from_str("5,0"));
     }
 
     #[test]
     fn coordinate_pairs() {
         assert_eq!((Coordinate(0,0), Coordinate(999,0)), super::get_coordinate_pairs("turn on 0,0 through 999,0").unwrap());
-    }
-
-    #[test]
-    fn coordinate_index() {
-        assert_eq!(0, Coordinate(0,0).index());
-        assert_eq!(10, Coordinate(10,0).index());
-        assert_eq!(1010, Coordinate(10,1).index());
-    }
-
-    #[test]
-    fn coordinate_next() {
-        assert_eq!(Some(Coordinate(1,0)), Coordinate(0,0).next());
-        assert_eq!(Some(Coordinate(0,1)), Coordinate(999,0).next());
-        assert_eq!(None, Coordinate(999,999).next());
     }
 
     #[test]
@@ -231,39 +213,40 @@ pub mod tests {
 
     #[test]
     fn iterator() {
-        let mut c0 = Coordinate(0,0);
+        let mut c0 = Coordinate(0, 0);
         let mut c1 = Coordinate(10, 0);
+        let shape = Coordinate(1000, 1000);
         let (mut expected, mut result): (Vec<usize>, Vec<usize>);
 
         // A simple row slice
         expected = (0..11).collect();
-        result = Slice::new(c0, c1).collect();
+        result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
 
         // A 11x2 box
         c1 = Coordinate(10, 1);
         expected = (0..11).chain(1000..1011).collect();
-        result = Slice::new(c0, c1).collect();
+        result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
 
         // Change origins
         c0 = Coordinate(5, 1);
         c1 = Coordinate(10, 2);
         expected = (1005..1011).chain(2005..2011).collect();
-        result = Slice::new(c0, c1).collect();
+        result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
 
         // Assert boundaries
         c0 = Coordinate(998, 0);
         c1 = Coordinate(999, 1);
         expected = (998..1000).chain(1998..2000).collect();
-        result = Slice::new(c0, c1).collect();
+        result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
 
         c0 = Coordinate(998, 999);
-        c1 = Coordinate(1020, 1020);
+        c1 = Coordinate(999, 999);
         expected = (999998..1000000).collect();
-        result = Slice::new(c0, c1).collect();
+        result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
     }
 }
