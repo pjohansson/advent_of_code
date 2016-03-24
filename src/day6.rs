@@ -6,7 +6,7 @@ pub fn main(input: &str, rule: Rule) -> usize {
     let mut lights = LightArray::new(1000, 1000);
 
     for (i, line) in input.lines().enumerate() {
-        if let Some(instruction) = get_instruction(line) {
+        if let Ok(instruction) = get_instruction(line) {
             for index in lights.slice_from_str(line) {
                 switch_light(&mut lights.array[index], instruction, rule);
             }
@@ -154,16 +154,16 @@ fn get_coordinate_pairs(input: &str) -> Option<(Coordinate, Coordinate)> {
     None
 }
 
-fn get_instruction(input: &str) -> Option<Instruction> {
+fn get_instruction(input: &str) -> Result<Instruction, &str> {
     let words: Vec<&str> = input.split_whitespace()
                                 .take(2)
                                 .collect();
 
     match get_words(words, 0, 1) {
-        Some(("toggle", _))   => Some(Toggle),
-        Some(("turn", "on"))  => Some(TurnOn),
-        Some(("turn", "off")) => Some(TurnOff),
-        _                     => None,
+        Some(("toggle", _))   => Ok(Toggle),
+        Some(("turn", "on"))  => Ok(TurnOn),
+        Some(("turn", "off")) => Ok(TurnOff),
+        _                     => Err("Could not parse instruction from line."),
     }
 }
 
@@ -191,7 +191,8 @@ pub mod tests {
 
     #[test]
     fn coordinate_pairs() {
-        assert_eq!((Coordinate(0,0), Coordinate(999,0)), super::get_coordinate_pairs("turn on 0,0 through 999,0").unwrap());
+        assert_eq!((Coordinate(0,0), Coordinate(999,0)), 
+            super::get_coordinate_pairs("turn on 0,0 through 999,0").unwrap());
     }
 
     #[test]
@@ -204,9 +205,9 @@ pub mod tests {
 
     #[test]
     fn instructions() {
-        assert_eq!(Toggle, super::get_instruction("toggle 0,0 through 999,0").unwrap());
-        assert_eq!(TurnOn, super::get_instruction("turn on 0,0 through 999,999").unwrap());
-        assert_eq!(TurnOff, super::get_instruction("turn off 0,0 through 999,0").unwrap());
+        assert_eq!(Ok(Toggle), super::get_instruction("toggle 0,0 through 999,0"));
+        assert_eq!(Ok(TurnOn), super::get_instruction("turn on 0,0 through 999,999"));
+        assert_eq!(Ok(TurnOff), super::get_instruction("turn off 0,0 through 999,0"));
     }
 
     #[test]
@@ -235,15 +236,9 @@ pub mod tests {
         assert_eq!(expected, result);
 
         // Assert boundaries
-        c0 = Coordinate(998, 0);
-        c1 = Coordinate(999, 1);
-        expected = (998..1000).chain(1998..2000).collect();
-        result = Slice::new(c0, c1, shape).collect();
-        assert_eq!(expected, result);
-
-        c0 = Coordinate(998, 999);
+        c0 = Coordinate(998, 998);
         c1 = Coordinate(999, 999);
-        expected = (999998..1000000).collect();
+        expected = (998998..999000).chain(999998..1000000).collect();
         result = Slice::new(c0, c1, shape).collect();
         assert_eq!(expected, result);
     }
