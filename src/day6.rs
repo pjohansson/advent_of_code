@@ -115,19 +115,18 @@ impl Iterator for Slice {
                 let Coordinate(xmax, ymax) = self.end;
 
                 self.current = {
-                    let mut xnext = x + 1;
-                    let mut ynext = y;
+                    let (mut xnext, mut ynext) = (x + 1, y);
 
                     if xnext > xmax {
                         xnext = xmin;
                         ynext += 1;
                     }
 
-                    if ynext > ymax {
-                        None
+                    if ynext <= ymax {
+                        Some(Coordinate(xnext, ynext))
                     }
                     else {
-                        Some(Coordinate(xnext, ynext))
+                        None
                     }
                 };
 
